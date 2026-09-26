@@ -8,7 +8,6 @@ namespace WebApp.ApiControllers;
 [Route("api/[controller]")]
 public class SectorsController(ISectorService sectorService) : ControllerBase
 {
-    // GET: api/Sectors
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<SectorDto>>> GetSectors()
     {

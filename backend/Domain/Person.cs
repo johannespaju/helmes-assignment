@@ -12,5 +12,5 @@ public class Person : BaseEntity
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 
-    public ICollection<PersonSector>? PersonSectors { get; set; }
+    public ICollection<PersonSector> PersonSectors { get; set; } = [];
 }

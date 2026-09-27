@@ -1,10 +1,9 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
-import { FormControl } from '@angular/forms';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 
-// TODO: "Agree to terms" checkbox bound with [formControl]="control()", plus its validation error.
 @Component({
   selector: 'app-terms-checkbox',
-  imports: [],
+  imports: [ReactiveFormsModule],
   templateUrl: './terms-checkbox.html',
   styleUrl: './terms-checkbox.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

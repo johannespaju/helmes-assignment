@@ -1,10 +1,9 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
-import { FormControl } from '@angular/forms';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 
-// TODO: Name input bound with [formControl]="control()", plus its validation errors.
 @Component({
   selector: 'app-person-name',
-  imports: [],
+  imports: [ReactiveFormsModule],
   templateUrl: './person-name.html',
   styleUrl: './person-name.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

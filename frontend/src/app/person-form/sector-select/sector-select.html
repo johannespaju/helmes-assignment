@@ -1,1 +1,76 @@
-<p>sector-select works!</p>
+<div>
+  <span id="sectorIds-label">Sectors:</span>
+
+  <details #dropdown class="dropdown" (keydown.escape)="closeOnEscape()">
+    <summary
+      #dropdownSummary
+      aria-labelledby="sectorIds-label sectorIds-value"
+      aria-describedby="sectorIds-error"
+      [attr.aria-invalid]="control().invalid && control().touched"
+    >
+      <span id="sectorIds-value">
+        @if (selectedIds().length === 0) {
+          Select sectors
+        } @else {
+          {{ selectedIds().length }} selected
+        }
+      </span>
+    </summary>
+
+    <div class="panel">
+      <ng-template #tree let-sectors>
+        <ul>
+          @for (sector of sectors; track sector.id) {
+            <li>
+              @if (sector.children.length === 0) {
+                <label>
+                  <input
+                    type="checkbox"
+                    [checked]="isSelected(sector.id)"
+                    (change)="toggle(sector.id, $event)"
+                  />
+                  {{ sector.name }}
+                </label>
+              } @else {
+                @let count = countSelected(sector);
+                <details>
+                  <summary>
+                    {{ sector.name }}
+                    @if (count > 0) {
+                      ({{ count }} selected)
+                    }
+                  </summary>
+                  <ng-container
+                    [ngTemplateOutlet]="tree"
+                    [ngTemplateOutletContext]="{ $implicit: sector.children }"
+                  />
+                </details>
+              }
+            </li>
+          }
+        </ul>
+      </ng-template>
+
+      <ng-container [ngTemplateOutlet]="tree" [ngTemplateOutletContext]="{ $implicit: sectors() }" />
+    </div>
+  </details>
+
+  @if (selectedSectors().length > 0) {
+    <ul class="chips" aria-label="Selected sectors">
+      @for (sector of selectedSectors(); track sector.id) {
+        <li class="chip">
+          {{ sector.name }}
+          <button type="button" [attr.aria-label]="'Remove ' + sector.name" (click)="remove(sector.id)">
+            ×
+          </button>
+        </li>
+      }
+    </ul>
+  }
+
+  <p id="sectorIds-error">
+    @if (control().touched && control().hasError('required')) {
+      Select at least one sector.
+    }
+  </p>
+</div>

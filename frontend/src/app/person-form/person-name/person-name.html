@@ -1,1 +1,19 @@
-<p>person-name works!</p>
+<div>
+  <label for="name">Name:</label>
+  <input
+    id="name"
+    type="text"
+    [formControl]="control()"
+    [attr.aria-invalid]="control().invalid && control().touched"
+    aria-describedby="name-error"
+  />
+  <p id="name-error">
+    @if (control().touched) {
+      @if (control().hasError('required') || control().hasError('pattern')) {
+        Name is required.
+      } @else if (control().hasError('maxlength')) {
+        Name can be at most 128 characters.
+      }
+    }
+  </p>
+</div>

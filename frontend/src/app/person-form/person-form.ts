@@ -1,12 +1,12 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { SectorDto } from '../api/api.models';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { SectorApi } from '../api/sector-api';
 import { PersonName } from './person-name/person-name';
 import { SectorSelect } from './sector-select/sector-select';
 import { TermsCheckbox } from './terms-checkbox/terms-checkbox';
 
-// TODO: Page component. Owns the reactive FormGroup (name, sectorIds, agreeToTerms) and its
-// validators, loads the sectors and the stored person, and saves through PersonSession.
+// TODO: load the stored person and save through PersonSession.
 @Component({
   selector: 'app-person-form',
   imports: [ReactiveFormsModule, PersonName, SectorSelect, TermsCheckbox],
@@ -15,13 +15,22 @@ import { TermsCheckbox } from './terms-checkbox/terms-checkbox';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PersonForm {
-  // TODO: validators
+  private readonly sectorApi = inject(SectorApi);
+
   protected readonly form = new FormGroup({
-    name: new FormControl('', { nonNullable: true }),
-    sectorIds: new FormControl<string[]>([], { nonNullable: true }),
-    agreeToTerms: new FormControl(false, { nonNullable: true }),
+    name: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.pattern(/\S/), Validators.maxLength(128)],
+    }),
+    sectorIds: new FormControl<string[]>([], {
+      nonNullable: true,
+      validators: [Validators.required],
+    }),
+    agreeToTerms: new FormControl(false, {
+      nonNullable: true,
+      validators: [Validators.requiredTrue],
+    }),
   });
 
-  // TODO: load from SectorApi
-  protected readonly sectors = signal<SectorDto[]>([]);
+  protected readonly sectors = toSignal(this.sectorApi.getAll(), { initialValue: [] });
 }

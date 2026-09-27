@@ -1,0 +1,24 @@
+<form [formGroup]="form" (ngSubmit)="save()">
+  <app-person-name [control]="form.controls.name" />
+  <app-sector-select [control]="form.controls.sectorIds" [sectors]="sectors()" />
+  <app-terms-checkbox [control]="form.controls.agreeToTerms" />
+
+  <button type="submit" [disabled]="status() === 'saving'">Save</button>
+
+  <p role="status">
+    @switch (status()) {
+      @case ('saving') {
+        Saving…
+      }
+      @case ('saved') {
+        Saved.
+      }
+      @case ('saveFailed') {
+        Saving failed. Please try again.
+      }
+      @case ('loadFailed') {
+        Could not load your saved data.
+      }
+    }
+  </p>
+</form>

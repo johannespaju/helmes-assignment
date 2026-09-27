@@ -14,5 +14,5 @@ public class Sector : BaseEntity
 
     public ICollection<Sector>? Children { get; set; }
 
-    public ICollection<PersonSector>? PersonSectors { get; set; }
+    public ICollection<SubmissionSector>? SubmissionSectors { get; set; }
 }

@@ -4,11 +4,11 @@ export interface SectorDto {
   children: SectorDto[];
 }
 
-export interface PersonDto {
+export interface SubmissionDto {
   id: string;
   name: string;
   sectorIds: string[];
   agreeToTerms: boolean;
 }
 
-export type PersonInput = Omit<PersonDto, 'id'>;
+export type SubmissionInput = Omit<SubmissionDto, 'id'>;

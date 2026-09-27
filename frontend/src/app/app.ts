@@ -1,9 +1,9 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { PersonForm } from './person-form/person-form';
+import { SubmissionForm } from './submission-form/submission-form';
 
 @Component({
   selector: 'app-root',
-  imports: [PersonForm],
+  imports: [SubmissionForm],
   templateUrl: './app.html',
   styleUrl: './app.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -34,16 +34,17 @@ export class SectorSelect implements OnInit {
   sectors = input.required<SectorDto[]>();
 
   protected readonly selectedIds = signal<string[]>([]);
+  protected readonly showError = signal(false);
   protected readonly allSectors = computed(() => this.flatten(this.sectors()));
   protected readonly selectedSectors = computed(() =>
     this.allSectors().filter((sector) => this.selectedIds().includes(sector.id)),
   );
 
   ngOnInit(): void {
-    this.selectedIds.set(this.control().value);
+    this.syncFromControl();
     this.control()
-      .valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((ids) => this.selectedIds.set(ids));
+      .events.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.syncFromControl());
   }
 
   protected isSelected(id: string): boolean {
@@ -83,6 +84,12 @@ export class SectorSelect implements OnInit {
   protected closeOnEscape(): void {
     this.dropdown().nativeElement.open = false;
     this.dropdownSummary().nativeElement.focus();
+  }
+
+  private syncFromControl(): void {
+    const control = this.control();
+    this.selectedIds.set(control.value);
+    this.showError.set(control.touched && control.hasError('required'));
   }
 
   private flatten(sectors: SectorDto[]): SectorDto[] {

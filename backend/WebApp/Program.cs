@@ -15,10 +15,10 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("Default")));
 
 builder.Services.AddScoped<ISectorRepository, SectorRepository>();
-builder.Services.AddScoped<IPersonRepository, PersonRepository>();
+builder.Services.AddScoped<ISubmissionRepository, SubmissionRepository>();
 
 builder.Services.AddScoped<ISectorService, SectorService>();
-builder.Services.AddScoped<IPersonService, PersonService>();
+builder.Services.AddScoped<ISubmissionService, SubmissionService>();
 
 builder.Services.AddCors(options =>
     options.AddPolicy(frontendCorsPolicy, policy => policy

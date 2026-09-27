@@ -17,10 +17,10 @@ describe('App', () => {
     expect(app).toBeTruthy();
   });
 
-  it('should render the person form', async () => {
+  it('should render the submission form', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('app-person-form')).toBeTruthy();
+    expect(compiled.querySelector('app-submission-form')).toBeTruthy();
   });
 });

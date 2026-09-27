@@ -6,9 +6,9 @@ namespace DAL;
 
 public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
-    public DbSet<Person> Persons => Set<Person>();
+    public DbSet<Submission> Submissions => Set<Submission>();
     public DbSet<Sector> Sectors => Set<Sector>();
-    public DbSet<PersonSector> PersonSectors => Set<PersonSector>();
+    public DbSet<SubmissionSector> SubmissionSectors => Set<SubmissionSector>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

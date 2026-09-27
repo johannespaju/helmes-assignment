@@ -3,22 +3,22 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 
 import { API_BASE_URL } from '../api/api.config';
-import { PersonDto, PersonInput } from '../api/api.models';
-import { PersonSession } from './person-session';
+import { SubmissionDto, SubmissionInput } from '../api/api.models';
+import { SubmissionSession } from './submission-session';
 
-describe('PersonSession', () => {
-  let service: PersonSession;
+describe('SubmissionSession', () => {
+  let service: SubmissionSession;
   let httpTesting: HttpTestingController;
 
-  const input: PersonInput = { name: 'Jane Doe', sectorIds: ['2'], agreeToTerms: true };
-  const person: PersonDto = { id: 'abc', ...input };
+  const input: SubmissionInput = { name: 'Jane Doe', sectorIds: ['2'], agreeToTerms: true };
+  const submission: SubmissionDto = { id: 'abc', ...input };
 
   beforeEach(() => {
     sessionStorage.clear();
     TestBed.configureTestingModule({
       providers: [provideHttpClient(), provideHttpClientTesting()],
     });
-    service = TestBed.inject(PersonSession);
+    service = TestBed.inject(SubmissionSession);
     httpTesting = TestBed.inject(HttpTestingController);
   });
 
@@ -33,40 +33,40 @@ describe('PersonSession', () => {
   it('first save should POST and remember the returned id', () => {
     service.save(input).subscribe();
 
-    const request = httpTesting.expectOne(`${API_BASE_URL}/persons`);
+    const request = httpTesting.expectOne(`${API_BASE_URL}/submissions`);
     expect(request.request.method).toBe('POST');
-    request.flush(person);
+    request.flush(submission);
 
-    expect(sessionStorage.getItem('personId')).toBe('abc');
+    expect(sessionStorage.getItem('submissionId')).toBe('abc');
   });
 
   it('save with a remembered id should PUT to that id', () => {
-    sessionStorage.setItem('personId', 'abc');
+    sessionStorage.setItem('submissionId', 'abc');
 
     service.save(input).subscribe();
 
-    const request = httpTesting.expectOne(`${API_BASE_URL}/persons/abc`);
+    const request = httpTesting.expectOne(`${API_BASE_URL}/submissions/abc`);
     expect(request.request.method).toBe('PUT');
-    expect(request.request.body).toEqual(person);
-    request.flush(person);
+    expect(request.request.body).toEqual(submission);
+    request.flush(submission);
   });
 
   it('load without a remembered id should return null without a request', () => {
-    let result: PersonDto | null | undefined;
+    let result: SubmissionDto | null | undefined;
 
     service.load().subscribe((response) => (result = response));
 
-    httpTesting.expectNone(`${API_BASE_URL}/persons/abc`);
+    httpTesting.expectNone(`${API_BASE_URL}/submissions/abc`);
     expect(result).toBeNull();
   });
 
-  it('load with a remembered id should GET that person', () => {
-    sessionStorage.setItem('personId', 'abc');
-    let result: PersonDto | null | undefined;
+  it('load with a remembered id should GET that submission', () => {
+    sessionStorage.setItem('submissionId', 'abc');
+    let result: SubmissionDto | null | undefined;
 
     service.load().subscribe((response) => (result = response));
 
-    httpTesting.expectOne(`${API_BASE_URL}/persons/abc`).flush(person);
-    expect(result).toEqual(person);
+    httpTesting.expectOne(`${API_BASE_URL}/submissions/abc`).flush(submission);
+    expect(result).toEqual(submission);
   });
 });

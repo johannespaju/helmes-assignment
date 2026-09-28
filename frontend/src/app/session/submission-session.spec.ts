@@ -26,10 +26,6 @@ describe('SubmissionSession', () => {
     httpTesting.verify();
   });
 
-  it('should be created', () => {
-    expect(service).toBeTruthy();
-  });
-
   it('first save should POST and remember the returned id', () => {
     service.save(input).subscribe();
 
@@ -66,7 +62,7 @@ describe('SubmissionSession', () => {
 
     service.load().subscribe((response) => (result = response));
 
-    httpTesting.expectOne(`${API_BASE_URL}/submissions/abc`).flush(submission);
+    httpTesting.expectOne({ method: 'GET', url: `${API_BASE_URL}/submissions/abc` }).flush(submission);
     expect(result).toEqual(submission);
   });
 

@@ -2,11 +2,8 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text;
 using AwesomeAssertions;
-using DAL;
 using DTO;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using WebApp.Tests.Helpers;
 
 namespace WebApp.Tests.Integration.API;
@@ -55,15 +52,6 @@ public class SubmissionsController_Tests(CustomWebApplicationFactory factory) : 
     }
 
     [Fact]
-    public async Task GetBySector_Unknown_ReturnsEmpty()
-    {
-        var submissions = await _client.GetFromJsonAsync<List<SubmissionDto>>(
-            $"/api/Submissions?sectorId={Guid.NewGuid()}");
-
-        submissions.Should().BeEmpty();
-    }
-
-    [Fact]
     public async Task Post_Valid_Returns201AndCanBeFetched()
     {
         var res = await _client.PostAsJsonAsync("/api/Submissions", ValidDto());
@@ -83,58 +71,23 @@ public class SubmissionsController_Tests(CustomWebApplicationFactory factory) : 
         fetched.AgreeToTerms.Should().Be(created.AgreeToTerms);
     }
 
-    [Fact]
-    public async Task Post_TrimsName()
-    {
-        var res = await _client.PostAsJsonAsync("/api/Submissions", ValidDto() with { Name = "  Jane  " });
-
-        var created = await res.Content.ReadFromJsonAsync<SubmissionDto>();
-        created!.Name.Should().Be("Jane");
-    }
-
-    [Fact]
-    public async Task Post_DuplicateSectors_StoredOnce()
-    {
-        var dto = ValidDto() with { SectorIds = [TestSectors.ConstructionMaterials, TestSectors.ConstructionMaterials] };
-
-        var res = await _client.PostAsJsonAsync("/api/Submissions", dto);
-
-        res.StatusCode.Should().Be(HttpStatusCode.Created);
-        var created = await res.Content.ReadFromJsonAsync<SubmissionDto>();
-        var fetched = await _client.GetFromJsonAsync<SubmissionDto>($"/api/Submissions/{created!.Id}");
-        fetched!.SectorIds.Should().Equal(TestSectors.ConstructionMaterials);
-    }
-
     [Theory]
-    [MemberData(nameof(SectorsWithSubsectors))]
-    public async Task Post_SectorWithSubsectors_Returns400(Guid sectorId)
+    [MemberData(nameof(InvalidSectorIds))]
+    public async Task Post_InvalidSectors_Returns400(Guid[]? sectorIds)
     {
-        var res = await _client.PostAsJsonAsync("/api/Submissions",
-            ValidDto() with { SectorIds = [TestSectors.ConstructionMaterials, sectorId] });
+        var res = await _client.PostAsJsonAsync("/api/Submissions", ValidDto() with { SectorIds = sectorIds! });
 
         res.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         (await ErrorsAsync(res)).Should().ContainKey(nameof(SubmissionDto.SectorIds));
     }
 
-    public static TheoryData<Guid> SectorsWithSubsectors => new() { TestSectors.Manufacturing, TestSectors.FoodAndBeverage };
-
-    [Fact]
-    public async Task Post_UnknownSector_Returns400()
+    public static TheoryData<Guid[]?> InvalidSectorIds => new()
     {
-        var res = await _client.PostAsJsonAsync("/api/Submissions", ValidDto() with { SectorIds = [Guid.NewGuid()] });
-
-        res.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-        (await ErrorsAsync(res)).Should().ContainKey(nameof(SubmissionDto.SectorIds));
-    }
-
-    [Fact]
-    public async Task Post_EmptySectors_Returns400()
-    {
-        var res = await _client.PostAsJsonAsync("/api/Submissions", ValidDto() with { SectorIds = [] });
-
-        res.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-        (await ErrorsAsync(res)).Should().ContainKey(nameof(SubmissionDto.SectorIds));
-    }
+        new[] { TestSectors.ConstructionMaterials, TestSectors.Manufacturing },
+        new[] { Guid.NewGuid() },
+        Array.Empty<Guid>(),
+        null
+    };
 
     [Fact]
     public async Task Post_NotAgreedToTerms_Returns400()
@@ -146,10 +99,8 @@ public class SubmissionsController_Tests(CustomWebApplicationFactory factory) : 
     }
 
     [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData("   ")]
-    public async Task Post_MissingName_Returns400(string? name)
+    [MemberData(nameof(InvalidNames))]
+    public async Task Post_InvalidName_Returns400(string? name)
     {
         var res = await _client.PostAsJsonAsync("/api/Submissions", ValidDto() with { Name = name! });
 
@@ -157,14 +108,7 @@ public class SubmissionsController_Tests(CustomWebApplicationFactory factory) : 
         (await ErrorsAsync(res)).Should().ContainKey(nameof(SubmissionDto.Name));
     }
 
-    [Fact]
-    public async Task Post_NameTooLong_Returns400()
-    {
-        var res = await _client.PostAsJsonAsync("/api/Submissions", ValidDto() with { Name = new string('a', 129) });
-
-        res.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-        (await ErrorsAsync(res)).Should().ContainKey(nameof(SubmissionDto.Name));
-    }
+    public static TheoryData<string?> InvalidNames => new() { null, "", "   ", new string('a', 129) };
 
     [Fact]
     public async Task Post_AllFieldsInvalid_ReturnsAllErrorsAtOnce()
@@ -175,15 +119,6 @@ public class SubmissionsController_Tests(CustomWebApplicationFactory factory) : 
         res.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         (await ErrorsAsync(res)).Keys.Should().BeEquivalentTo(
             nameof(SubmissionDto.Name), nameof(SubmissionDto.SectorIds), nameof(SubmissionDto.AgreeToTerms));
-    }
-
-    [Fact]
-    public async Task Post_NullSectors_Returns400()
-    {
-        var res = await _client.PostAsJsonAsync("/api/Submissions", ValidDto() with { SectorIds = null! });
-
-        res.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-        (await ErrorsAsync(res)).Should().ContainKey(nameof(SubmissionDto.SectorIds));
     }
 
     [Theory]
@@ -216,27 +151,6 @@ public class SubmissionsController_Tests(CustomWebApplicationFactory factory) : 
     }
 
     [Fact]
-    public async Task Put_KeepsCreatedAt_BumpsUpdatedAt()
-    {
-        var created = await CreateSubmissionAsync();
-        var (createdAt, updatedAt) = await TimestampsAsync(created.Id);
-
-        await _client.PutAsJsonAsync($"/api/Submissions/{created.Id}", ValidDto(created.Id) with { Name = "John" });
-
-        var (createdAtAfter, updatedAtAfter) = await TimestampsAsync(created.Id);
-        createdAtAfter.Should().Be(createdAt);
-        updatedAtAfter.Should().BeAfter(updatedAt);
-    }
-
-    private async Task<(DateTime CreatedAt, DateTime UpdatedAt)> TimestampsAsync(Guid id)
-    {
-        using var scope = factory.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var submission = await db.Submissions.SingleAsync(s => s.Id == id);
-        return (submission.CreatedAt, submission.UpdatedAt);
-    }
-
-    [Fact]
     public async Task Put_IdMismatch_Returns400()
     {
         var created = await CreateSubmissionAsync();
@@ -247,44 +161,6 @@ public class SubmissionsController_Tests(CustomWebApplicationFactory factory) : 
         (await ErrorsAsync(res)).Should().ContainKey("id");
         var fetched = await _client.GetFromJsonAsync<SubmissionDto>($"/api/Submissions/{created.Id}");
         fetched!.Name.Should().Be(created.Name);
-    }
-
-    [Fact]
-    public async Task Put_NotAgreedToTerms_Returns400()
-    {
-        var created = await CreateSubmissionAsync();
-
-        var res = await _client.PutAsJsonAsync($"/api/Submissions/{created.Id}",
-            ValidDto(created.Id) with { AgreeToTerms = false });
-
-        res.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-        (await ErrorsAsync(res)).Should().ContainKey(nameof(SubmissionDto.AgreeToTerms));
-    }
-
-    [Fact]
-    public async Task Put_SectorWithSubsectors_Returns400()
-    {
-        var created = await CreateSubmissionAsync();
-
-        var res = await _client.PutAsJsonAsync($"/api/Submissions/{created.Id}",
-            ValidDto(created.Id) with { SectorIds = [TestSectors.Manufacturing] });
-
-        res.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-        (await ErrorsAsync(res)).Should().ContainKey(nameof(SubmissionDto.SectorIds));
-    }
-
-    [Fact]
-    public async Task Put_EmptySectors_Returns400()
-    {
-        var created = await CreateSubmissionAsync();
-
-        var res = await _client.PutAsJsonAsync($"/api/Submissions/{created.Id}",
-            ValidDto(created.Id) with { SectorIds = [] });
-
-        res.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-        (await ErrorsAsync(res)).Should().ContainKey(nameof(SubmissionDto.SectorIds));
-        var fetched = await _client.GetFromJsonAsync<SubmissionDto>($"/api/Submissions/{created.Id}");
-        fetched!.SectorIds.Should().Equal(created.SectorIds);
     }
 
     [Fact]

@@ -25,7 +25,7 @@ describe('AdminPage', () => {
     fixture = TestBed.createComponent(AdminPage);
     httpTesting = TestBed.inject(HttpTestingController);
     await fixture.whenStable();
-    httpTesting.expectOne(`${API_BASE_URL}/sectors`).flush(sectors);
+    httpTesting.expectOne({ method: 'GET', url: `${API_BASE_URL}/sectors` }).flush(sectors);
     await fixture.whenStable();
   }
 
@@ -77,7 +77,9 @@ describe('AdminPage', () => {
     await createComponent();
 
     pickSector('1');
-    httpTesting.expectOne(`${API_BASE_URL}/submissions?sectorId=1`).flush([jane]);
+    httpTesting
+      .expectOne({ method: 'GET', url: `${API_BASE_URL}/submissions?sectorId=1` })
+      .flush([jane]);
     await fixture.whenStable();
 
     expect(cells()).toEqual(['Jane Doe', 'Food, Service']);

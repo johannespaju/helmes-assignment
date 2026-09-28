@@ -5,7 +5,6 @@ import { SectorDto } from '../../api/api.models';
 import { SectorSelect } from './sector-select';
 
 describe('SectorSelect', () => {
-  let component: SectorSelect;
   let fixture: ComponentFixture<SectorSelect>;
   let control: FormControl<string[]>;
 
@@ -26,7 +25,6 @@ describe('SectorSelect', () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(SectorSelect);
-    component = fixture.componentInstance;
     control = new FormControl<string[]>([], { nonNullable: true });
     fixture.componentRef.setInput('control', control);
     fixture.componentRef.setInput('sectors', sectors);
@@ -40,10 +38,6 @@ describe('SectorSelect', () => {
   function getChips(): HTMLElement[] {
     return Array.from(fixture.nativeElement.querySelectorAll('.chip'));
   }
-
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
 
   it('should render parents as groups and only leaves as checkboxes', () => {
     const groupSummary: HTMLElement = fixture.nativeElement.querySelector('.panel summary');

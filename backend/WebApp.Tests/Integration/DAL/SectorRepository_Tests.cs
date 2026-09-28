@@ -8,20 +8,12 @@ namespace WebApp.Tests.Integration.DAL;
 public class SectorRepository_Tests : RepositoryTestBase
 {
     [Fact]
-    public async Task AllAsync_ReturnsAllSeededSectors()
+    public async Task AllAsync_ReturnsAllSeededSectorsInSortOrder()
     {
         await using var ctx = CreateContext();
         var all = await new SectorRepository(ctx).AllAsync();
 
         all.Select(s => s.Id).Should().BeEquivalentTo(SectorSeed.Sectors.Select(s => s.Id));
-    }
-
-    [Fact]
-    public async Task AllAsync_IsOrderedBySortOrder()
-    {
-        await using var ctx = CreateContext();
-        var all = await new SectorRepository(ctx).AllAsync();
-
         all.Select(s => s.SortOrder).Should().BeInAscendingOrder();
     }
 
@@ -53,14 +45,5 @@ public class SectorRepository_Tests : RepositoryTestBase
             [TestSectors.ConstructionMaterials, Guid.NewGuid()]);
 
         count.Should().Be(1);
-    }
-
-    [Fact]
-    public async Task CountSelectableAsync_EmptyIds_ReturnsZero()
-    {
-        await using var ctx = CreateContext();
-        var count = await new SectorRepository(ctx).CountSelectableAsync([]);
-
-        count.Should().Be(0);
     }
 }

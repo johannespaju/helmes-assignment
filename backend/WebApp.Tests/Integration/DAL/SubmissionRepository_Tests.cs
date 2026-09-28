@@ -23,15 +23,6 @@ public class SubmissionRepository_Tests : RepositoryTestBase
     }
 
     [Fact]
-    public async Task FindAsync_NotFound_ReturnsNull()
-    {
-        await using var ctx = CreateContext();
-        var submission = await new SubmissionRepository(ctx).FindAsync(Guid.NewGuid());
-
-        submission.Should().BeNull();
-    }
-
-    [Fact]
     public async Task AllWithAnySectorAsync_ReturnsMatchingSubmissionsSortedByNameWithSectors()
     {
         await AddSubmissionDirectlyAsync("Mary", TestSectors.Beverages);

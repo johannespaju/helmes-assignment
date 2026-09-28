@@ -16,12 +16,6 @@ describe('App', () => {
     }).compileComponents();
   });
 
-  it('should create the app', () => {
-    const fixture = TestBed.createComponent(App);
-    const app = fixture.componentInstance;
-    expect(app).toBeTruthy();
-  });
-
   it('should render nav links to the form and the admin page', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();

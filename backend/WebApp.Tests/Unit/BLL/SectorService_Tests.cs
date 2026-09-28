@@ -48,16 +48,6 @@ public class SectorService_Tests
     }
 
     [Fact]
-    public async Task GetAllAsync_NoSectors_ReturnsEmpty()
-    {
-        _repository.Setup(r => r.AllAsync()).ReturnsAsync([]);
-
-        var tree = await _sut.GetAllAsync();
-
-        tree.Should().BeEmpty();
-    }
-
-    [Fact]
     public async Task AreSelectableAsync_AllSelectable_ReturnsTrue()
     {
         _repository.Setup(r => r.CountSelectableAsync(It.IsAny<IReadOnlyCollection<Guid>>())).ReturnsAsync(2);

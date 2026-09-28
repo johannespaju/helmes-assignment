@@ -108,6 +108,19 @@ describe('AdminPage', () => {
     expect(text()).toContain('Pick a sector to see who selected it.');
   });
 
+  it('should drop the previous search when another sector is picked', async () => {
+    await createComponent();
+
+    pickSector('1');
+    const firstSearch = httpTesting.expectOne(`${API_BASE_URL}/submissions?sectorId=1`);
+    pickSector('3');
+    httpTesting.expectOne(`${API_BASE_URL}/submissions?sectorId=3`).flush([]);
+    await fixture.whenStable();
+
+    expect(firstSearch.cancelled).toBe(true);
+    expect(text()).toContain('No people have selected this sector.');
+  });
+
   it('should say when loading people fails', async () => {
     await createComponent();
 

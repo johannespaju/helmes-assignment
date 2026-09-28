@@ -46,10 +46,13 @@ describe('SubmissionForm', () => {
     httpTesting.verify();
   });
 
-  it('should create and load sectors from the API', async () => {
+  function saveButton(): HTMLButtonElement {
+    return fixture.nativeElement.querySelector('button[type="submit"]');
+  }
+
+  it('should load sectors from the API', async () => {
     await createComponent();
 
-    expect(component).toBeTruthy();
     expect(text()).toContain('Food');
   });
 
@@ -80,6 +83,33 @@ describe('SubmissionForm', () => {
     expect(fixture.nativeElement.querySelector('.chip').textContent).toContain('Food');
   });
 
+  it('should say when loading the saved submission fails', async () => {
+    sessionStorage.setItem('submissionId', 'abc');
+    await createComponent();
+
+    httpTesting
+      .expectOne(`${API_BASE_URL}/submissions/abc`)
+      .flush(null, { status: 500, statusText: 'Server Error' });
+    await fixture.whenStable();
+
+    expect(text()).toContain('Could not load your saved data.');
+  });
+
+  it.each([
+    { problem: 'only whitespace', name: '   ', error: 'Name is required.' },
+    { problem: 'over 128 characters', name: 'a'.repeat(129), error: 'Name can be at most 128 characters.' },
+  ])('should reject a name that is $problem', async ({ name, error }) => {
+    await createComponent();
+    const nameInput: HTMLInputElement = fixture.nativeElement.querySelector('#name');
+    nameInput.value = name;
+    nameInput.dispatchEvent(new Event('input'));
+
+    submit();
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.querySelector('#name-error').textContent).toContain(error);
+  });
+
   it('should show all errors and not save when the form is invalid', async () => {
     await createComponent();
 
@@ -98,6 +128,7 @@ describe('SubmissionForm', () => {
     submit();
     await fixture.whenStable();
     expect(text()).toContain('Saving…');
+    expect(saveButton().disabled).toBe(true);
 
     const request = httpTesting.expectOne(`${API_BASE_URL}/submissions`);
     expect(request.request.body).toEqual({ name: 'Jane Doe', sectorIds: ['2'], agreeToTerms: true });
@@ -105,6 +136,7 @@ describe('SubmissionForm', () => {
     await fixture.whenStable();
 
     expect(text()).toContain('Saved.');
+    expect(saveButton().disabled).toBe(false);
   });
 
   it('should refill the form with the stored data after saving', async () => {

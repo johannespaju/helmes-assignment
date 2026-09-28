@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { FormControl } from '@angular/forms';
+import { FormControl, Validators } from '@angular/forms';
 
 import { SectorDto } from '../../api/api.models';
 import { SectorSelect } from './sector-select';
@@ -25,7 +25,7 @@ describe('SectorSelect', () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(SectorSelect);
-    control = new FormControl<string[]>([], { nonNullable: true });
+    control = new FormControl<string[]>([], { nonNullable: true, validators: [Validators.required] });
     fixture.componentRef.setInput('control', control);
     fixture.componentRef.setInput('sectors', sectors);
     await fixture.whenStable();
@@ -77,5 +77,17 @@ describe('SectorSelect', () => {
 
     expect(control.value).toEqual(['3']);
     expect(getChips().length).toBe(1);
+  });
+
+  it('should ask for a sector when the last chip is removed', async () => {
+    control.setValue(['2']);
+    await fixture.whenStable();
+
+    getChips()[0].querySelector('button')!.click();
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.querySelector('#sectorIds-error').textContent).toContain(
+      'Select at least one sector.',
+    );
   });
 });

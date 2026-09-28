@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { catchError, of, switchMap } from 'rxjs';
+import { catchError, map, of, switchMap } from 'rxjs';
 import { SectorDto } from '../api/api.models';
 import { SectorApi } from '../api/sector-api';
 import { SubmissionApi } from '../api/submission-api';
@@ -44,7 +44,7 @@ export class AdminPage {
     { initialValue: [] },
   );
 
-  private readonly people = toSignal(
+  private readonly search = toSignal(
     this.sectorControl.valueChanges.pipe(
       switchMap((sectorId) => {
         this.status.set('idle');
@@ -52,6 +52,7 @@ export class AdminPage {
           return of(null);
         }
         return this.submissionApi.getBySector(sectorId).pipe(
+          map((people) => ({ sectorId, people })),
           catchError(() => {
             this.status.set('searchFailed');
             return of(null);
@@ -69,15 +70,20 @@ export class AdminPage {
   );
 
   protected readonly rows = computed<PersonRow[] | null>(() => {
-    const people = this.people();
-    if (people === null) {
+    const search = this.search();
+    if (search === null) {
       return null;
     }
     const names = this.sectorNames();
-    return people.map((person) => ({
+    const shownIds = new Set<string>();
+    this.collectSelfAndDescendantIds(this.sectors(), search.sectorId, false, shownIds);
+    return search.people.map((person) => ({
       id: person.id,
       name: person.name,
-      sectors: person.sectorIds.map((id) => names.get(id)).join(', '),
+      sectors: person.sectorIds
+        .filter((id) => shownIds.has(id))
+        .map((id) => names.get(id))
+        .join(', '),
     }));
   });
 
@@ -89,5 +95,20 @@ export class AdminPage {
       options.push(...this.flatten(sector.children, depth + 1));
     }
     return options;
+  }
+
+  private collectSelfAndDescendantIds(
+    sectors: SectorDto[],
+    sectorId: string,
+    insideSector: boolean,
+    ids: Set<string>,
+  ): void {
+    for (const sector of sectors) {
+      const inside = insideSector || sector.id === sectorId;
+      if (inside) {
+        ids.add(sector.id);
+      }
+      this.collectSelfAndDescendantIds(sector.children, sectorId, inside, ids);
+    }
   }
 }

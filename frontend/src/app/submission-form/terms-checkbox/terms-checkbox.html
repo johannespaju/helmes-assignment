@@ -1,13 +1,15 @@
-<div>
-  <input
-    id="agreeToTerms"
-    type="checkbox"
-    [formControl]="control()"
-    [attr.aria-invalid]="control().invalid && control().touched"
-    aria-describedby="agreeToTerms-error"
-  />
-  <label for="agreeToTerms">Agree to terms</label>
-  <p id="agreeToTerms-error">
+<div class="field">
+  <div class="checkbox">
+    <input
+      id="agreeToTerms"
+      type="checkbox"
+      [formControl]="control()"
+      [attr.aria-invalid]="control().invalid && control().touched"
+      aria-describedby="agreeToTerms-error"
+    />
+    <label for="agreeToTerms">Agree to terms</label>
+  </div>
+  <p id="agreeToTerms-error" class="error">
     @if (control().touched && control().hasError('required')) {
       You must agree to the terms.
     }

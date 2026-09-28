@@ -73,7 +73,7 @@ describe('AdminPage', () => {
     expect(text()).toContain('Pick a sector to see who selected it.');
   });
 
-  it('should list people in the picked sector with their sector names', async () => {
+  it('should list people in the picked sector with only their sectors under it', async () => {
     await createComponent();
 
     pickSector('1');
@@ -82,7 +82,7 @@ describe('AdminPage', () => {
       .flush([jane]);
     await fixture.whenStable();
 
-    expect(cells()).toEqual(['Jane Doe', 'Food, Service']);
+    expect(cells()).toEqual(['Jane Doe', 'Food']);
   });
 
   it('should say when nobody has selected the picked sector', async () => {

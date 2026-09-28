@@ -1,4 +1,40 @@
+header {
+  border-bottom: 1px solid var(--line);
+  background: #fff;
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.app-name {
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
 nav {
   display: flex;
-  justify-content: space-between;
+  gap: 1.5rem;
+
+  a {
+    color: var(--text);
+    text-decoration: none;
+    text-underline-offset: 0.375rem;
+
+    &:hover {
+      color: var(--link);
+    }
+
+    &[aria-current='page'] {
+      color: var(--primary);
+      font-weight: 500;
+      text-decoration: underline 2px;
+    }
+  }
 }

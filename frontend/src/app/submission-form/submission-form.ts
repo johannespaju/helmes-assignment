@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { catchError, of } from 'rxjs';
@@ -38,6 +38,9 @@ export class SubmissionForm {
   });
 
   protected readonly status = signal<Status>('idle');
+  protected readonly failed = computed(() =>
+    ['saveFailed', 'loadFailed', 'sectorsLoadFailed'].includes(this.status()),
+  );
   protected readonly sectors = toSignal(
     this.sectorApi.getAll().pipe(
       catchError(() => {
@@ -60,6 +63,12 @@ export class SubmissionForm {
         },
         error: () => this.status.set('loadFailed'),
       });
+
+    this.form.valueChanges.pipe(takeUntilDestroyed()).subscribe(() => {
+      if (this.status() === 'saved' || this.status() === 'saveFailed') {
+        this.status.set('idle');
+      }
+    });
   }
 
   protected save(): void {

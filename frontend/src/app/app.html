@@ -1,12 +1,19 @@
-<nav>
-  <a
-    routerLink="/"
-    routerLinkActive
-    ariaCurrentWhenActive="page"
-    [routerLinkActiveOptions]="{ exact: true }"
-    >Form</a
-  >
-  <a routerLink="/admin" routerLinkActive ariaCurrentWhenActive="page">Admin</a>
-</nav>
+<header>
+  <div class="bar">
+    <span class="app-name">Sectors</span>
+    <nav>
+      <a
+        routerLink="/"
+        routerLinkActive
+        ariaCurrentWhenActive="page"
+        [routerLinkActiveOptions]="{ exact: true }"
+        >Form</a
+      >
+      <a routerLink="/admin" routerLinkActive ariaCurrentWhenActive="page">Admin</a>
+    </nav>
+  </div>
+</header>
 
-<router-outlet />
+<main>
+  <router-outlet />
+</main>

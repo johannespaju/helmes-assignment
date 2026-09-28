@@ -13,7 +13,7 @@ public class SectorsController_Tests(CustomWebApplicationFactory factory) : ICla
         var tree = await factory.CreateClient().GetFromJsonAsync<List<SectorDto>>("/api/Sectors");
 
         tree.Should().NotBeNull();
-        tree!.Select(s => s.Name).Should().Equal("Manufacturing", "Other", "Service");
+        tree!.Select(s => s.Name).Should().Equal("Manufacturing", "Service", "Other");
 
         var manufacturing = tree[0];
         manufacturing.Id.Should().Be(TestSectors.Manufacturing);

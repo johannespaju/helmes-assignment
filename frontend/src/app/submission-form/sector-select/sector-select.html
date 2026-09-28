@@ -1,9 +1,10 @@
-<div>
-  <span id="sectorIds-label">Sectors:</span>
+<div class="field">
+  <span id="sectorIds-label" class="label">Sectors</span>
 
   <details #dropdown class="dropdown" (keydown.escape)="closeOnEscape()">
     <summary
       #dropdownSummary
+      class="control"
       aria-labelledby="sectorIds-label sectorIds-value"
       aria-describedby="sectorIds-error"
       [attr.aria-invalid]="showError()"
@@ -68,7 +69,7 @@
     </ul>
   }
 
-  <p id="sectorIds-error">
+  <p id="sectorIds-error" class="error">
     @if (showError()) {
       Select at least one sector.
     }

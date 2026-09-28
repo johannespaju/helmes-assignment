@@ -1,0 +1,22 @@
+.hint {
+  color: var(--muted);
+}
+
+table {
+  width: 100%;
+  margin-top: 1rem;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 0.625rem 0.75rem;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+
+th {
+  font-weight: 500;
+  border-bottom-color: var(--muted);
+}

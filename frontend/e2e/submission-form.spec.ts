@@ -16,7 +16,7 @@ async function pickSector(page: Page, groups: string[], leaf: string): Promise<v
 }
 
 async function fillAndSave(page: Page): Promise<void> {
-  await page.getByLabel('Name:').fill('Jane Doe');
+  await page.getByLabel('Name').fill('Jane Doe');
   await pickSector(page, ['Manufacturing', 'Food and beverage'], 'Beverages');
   await page.getByLabel('Agree to terms').check();
   await page.getByRole('button', { name: 'Save' }).click();
@@ -29,7 +29,7 @@ test('should refill the form with the saved data after a reload', async ({ page 
 
   await page.reload();
 
-  await expect(page.getByLabel('Name:')).toHaveValue('Jane Doe');
+  await expect(page.getByLabel('Name')).toHaveValue('Jane Doe');
   await expect(page.getByRole('list', { name: 'Selected sectors' })).toHaveText(/Beverages/);
   await expect(page.getByLabel('Agree to terms')).toBeChecked();
 });
@@ -39,7 +39,7 @@ test('should update the same submission when saving again in the session', async
   await fillAndSave(page);
   const [id] = api.submissions.keys();
 
-  await page.getByLabel('Name:').fill('Jane Smith');
+  await page.getByLabel('Name').fill('Jane Smith');
   await page.getByRole('button', { name: 'Remove Beverages' }).click();
   await pickSector(page, ['Service'], 'Tourism');
   await page.getByRole('button', { name: 'Save' }).click();
@@ -56,13 +56,13 @@ test('should start with an empty form in a new tab', async ({ page, context }) =
   const newTab = await context.newPage();
   await newTab.goto('/');
 
-  await expect(newTab.getByLabel('Name:')).toHaveValue('');
+  await expect(newTab.getByLabel('Name')).toHaveValue('');
   await expect(newTab.getByLabel('Agree to terms')).not.toBeChecked();
 });
 
 test('should let the sectors dropdown be used with the keyboard', async ({ page }) => {
   await page.goto('/');
-  await page.getByLabel('Name:').focus();
+  await page.getByLabel('Name').focus();
 
   await page.keyboard.press('Tab');
   await page.keyboard.press('Enter');
@@ -91,7 +91,7 @@ test('should close the sectors dropdown on a click outside it', async ({ page })
   await page.goto('/');
   await sectorsDropdown(page).click();
 
-  await page.getByLabel('Name:').click();
+  await page.getByLabel('Name').click();
 
   await expect(page.getByText('Manufacturing')).toBeHidden();
 });

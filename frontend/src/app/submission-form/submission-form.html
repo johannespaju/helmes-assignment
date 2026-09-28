@@ -1,27 +1,37 @@
+<h1>Your sectors</h1>
+<p class="intro">Please enter your name and pick the sectors you are currently involved in.</p>
+
 <form [formGroup]="form" (ngSubmit)="save()">
   <app-person-name [control]="form.controls.name" />
   <app-sector-select [control]="form.controls.sectorIds" [sectors]="sectors()" />
   <app-terms-checkbox [control]="form.controls.agreeToTerms" />
 
-  <button type="submit" [disabled]="status() === 'saving'">Save</button>
+  <div class="actions">
+    <button class="button" type="submit" [disabled]="status() === 'saving'">Save</button>
 
-  <p role="status">
-    @switch (status()) {
-      @case ('saving') {
-        Saving…
+    <p
+      role="status"
+      class="status"
+      [class.success]="status() === 'saved'"
+      [class.failure]="failed()"
+    >
+      @switch (status()) {
+        @case ('saving') {
+          Saving…
+        }
+        @case ('saved') {
+          Saved.
+        }
+        @case ('saveFailed') {
+          Saving failed. Please try again.
+        }
+        @case ('loadFailed') {
+          Could not load your saved data.
+        }
+        @case ('sectorsLoadFailed') {
+          Could not load sectors. Please refresh the page.
+        }
       }
-      @case ('saved') {
-        Saved.
-      }
-      @case ('saveFailed') {
-        Saving failed. Please try again.
-      }
-      @case ('loadFailed') {
-        Could not load your saved data.
-      }
-      @case ('sectorsLoadFailed') {
-        Could not load sectors. Please refresh the page.
-      }
-    }
-  </p>
+    </p>
+  </div>
 </form>

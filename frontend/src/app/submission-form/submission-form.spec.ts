@@ -139,6 +139,21 @@ describe('SubmissionForm', () => {
     expect(saveButton().disabled).toBe(false);
   });
 
+  it('should clear the saved message once the form is edited again', async () => {
+    await createComponent();
+    component['form'].setValue({ name: 'Jane Doe', sectorIds: ['2'], agreeToTerms: true });
+
+    submit();
+    httpTesting.expectOne(`${API_BASE_URL}/submissions`).flush(submission);
+    await fixture.whenStable();
+    expect(text()).toContain('Saved.');
+
+    component['form'].controls.name.setValue('Jane Smith');
+    await fixture.whenStable();
+
+    expect(text()).not.toContain('Saved.');
+  });
+
   it('should refill the form with the stored data after saving', async () => {
     await createComponent();
     component['form'].setValue({ name: '  Jane Doe  ', sectorIds: ['2'], agreeToTerms: true });

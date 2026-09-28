@@ -1,13 +1,14 @@
-<div>
-  <label for="name">Name:</label>
+<div class="field">
+  <label for="name">Name</label>
   <input
     id="name"
+    class="control"
     type="text"
     [formControl]="control()"
     [attr.aria-invalid]="control().invalid && control().touched"
     aria-describedby="name-error"
   />
-  <p id="name-error">
+  <p id="name-error" class="error">
     @if (control().touched) {
       @if (control().hasError('required') || control().hasError('pattern')) {
         Name is required.

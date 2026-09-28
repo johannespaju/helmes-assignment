@@ -53,6 +53,19 @@ describe('SubmissionForm', () => {
     expect(text()).toContain('Food');
   });
 
+  it('should say when loading sectors fails', async () => {
+    fixture = TestBed.createComponent(SubmissionForm);
+    httpTesting = TestBed.inject(HttpTestingController);
+    await fixture.whenStable();
+
+    httpTesting
+      .expectOne(`${API_BASE_URL}/sectors`)
+      .flush(null, { status: 500, statusText: 'Server Error' });
+    await fixture.whenStable();
+
+    expect(text()).toContain('Could not load sectors. Please refresh the page.');
+  });
+
   it('should fill the form with the submission saved in this session', async () => {
     sessionStorage.setItem('submissionId', 'abc');
     await createComponent();

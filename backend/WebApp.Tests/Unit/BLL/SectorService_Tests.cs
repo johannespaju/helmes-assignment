@@ -97,4 +97,41 @@ public class SectorService_Tests
         ok.Should().BeTrue();
         _repository.Verify(r => r.CountSelectableAsync(It.Is<IReadOnlyCollection<Guid>>(ids => ids.Count == 1)), Times.Once);
     }
+
+    [Fact]
+    public async Task GetSelfAndDescendantIdsAsync_Parent_ReturnsSelfAndAllDescendants()
+    {
+        var root = new Sector { Name = "Root" };
+        var child = new Sector { Name = "Child", ParentId = root.Id };
+        var grandchild = new Sector { Name = "Grandchild", ParentId = child.Id };
+        var otherRoot = new Sector { Name = "Other root" };
+        var otherChild = new Sector { Name = "Other child", ParentId = otherRoot.Id };
+        _repository.Setup(r => r.AllAsync()).ReturnsAsync([root, child, grandchild, otherRoot, otherChild]);
+
+        var ids = await _sut.GetSelfAndDescendantIdsAsync(root.Id);
+
+        ids.Should().BeEquivalentTo([root.Id, child.Id, grandchild.Id]);
+    }
+
+    [Fact]
+    public async Task GetSelfAndDescendantIdsAsync_Leaf_ReturnsOnlyItself()
+    {
+        var root = new Sector { Name = "Root" };
+        var leaf = new Sector { Name = "Leaf", ParentId = root.Id };
+        _repository.Setup(r => r.AllAsync()).ReturnsAsync([root, leaf]);
+
+        var ids = await _sut.GetSelfAndDescendantIdsAsync(leaf.Id);
+
+        ids.Should().Equal(leaf.Id);
+    }
+
+    [Fact]
+    public async Task GetSelfAndDescendantIdsAsync_Unknown_ReturnsEmpty()
+    {
+        _repository.Setup(r => r.AllAsync()).ReturnsAsync([new Sector { Name = "Root" }]);
+
+        var ids = await _sut.GetSelfAndDescendantIdsAsync(Guid.NewGuid());
+
+        ids.Should().BeEmpty();
+    }
 }

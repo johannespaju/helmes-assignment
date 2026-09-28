@@ -8,6 +8,13 @@ namespace WebApp.ApiControllers;
 [Route("api/[controller]")]
 public class SubmissionsController(ISubmissionService submissionService, ISectorService sectorService) : ControllerBase
 {
+    [HttpGet]
+    public async Task<ActionResult<IReadOnlyList<SubmissionDto>>> GetSubmissions(Guid sectorId)
+    {
+        var sectorIds = await sectorService.GetSelfAndDescendantIdsAsync(sectorId);
+        return Ok(await submissionService.GetBySectorsAsync(sectorIds));
+    }
+
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<SubmissionDto>> GetSubmission(Guid id)
     {
@@ -41,7 +48,7 @@ public class SubmissionsController(ISubmissionService submissionService, ISector
             ModelState.AddModelError("id", "Route id and body id do not match.");
         if (!dto.AgreeToTerms)
             ModelState.AddModelError(nameof(SubmissionDto.AgreeToTerms), "You must agree to the terms.");
-        if (dto.SectorIds is not null && !await sectorService.AreSelectableAsync(dto.SectorIds))
+        if (dto.SectorIds != null && !await sectorService.AreSelectableAsync(dto.SectorIds))
             ModelState.AddModelError(nameof(SubmissionDto.SectorIds), "Select at least one sector. Sectors that have subsectors cannot be selected.");
 
         return ModelState.IsValid;

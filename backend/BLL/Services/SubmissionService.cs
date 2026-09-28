@@ -13,6 +13,12 @@ public class SubmissionService(ISubmissionRepository submissionRepository) : ISu
         return submission is null ? null : ToDto(submission);
     }
 
+    public async Task<IReadOnlyList<SubmissionDto>> GetBySectorsAsync(IReadOnlyCollection<Guid> sectorIds)
+    {
+        var submissions = await submissionRepository.AllWithAnySectorAsync(sectorIds);
+        return submissions.Select(ToDto).ToList();
+    }
+
     public async Task<SubmissionDto> CreateAsync(SubmissionDto dto)
     {
         var now = DateTime.UtcNow;

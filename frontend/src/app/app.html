@@ -1,1 +1,12 @@
-<app-submission-form />
+<nav>
+  <a
+    routerLink="/"
+    routerLinkActive
+    ariaCurrentWhenActive="page"
+    [routerLinkActiveOptions]="{ exact: true }"
+    >Form</a
+  >
+  <a routerLink="/admin" routerLinkActive ariaCurrentWhenActive="page">Admin</a>
+</nav>
+
+<router-outlet />

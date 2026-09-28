@@ -37,4 +37,25 @@ public class SectorService(ISectorRepository sectorRepository) : ISectorService
         var selectableCount = await sectorRepository.CountSelectableAsync(ids);
         return selectableCount == ids.Count;
     }
+
+    public async Task<IReadOnlyList<Guid>> GetSelfAndDescendantIdsAsync(Guid sectorId)
+    {
+        var sectors = await sectorRepository.AllAsync();
+        if (!sectors.Any(s => s.Id == sectorId)) return [];
+
+        var result = new List<Guid> { sectorId };
+        AddDescendantIds(sectors, sectorId, result);
+        return result;
+    }
+
+    private static void AddDescendantIds(List<Sector> sectors, Guid parentId, List<Guid> result)
+    {
+        foreach (var s in sectors)
+        {
+            if (s.ParentId != parentId) continue;
+
+            result.Add(s.Id);
+            AddDescendantIds(sectors, s.Id, result);
+        }
+    }
 }

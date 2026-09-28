@@ -1,0 +1,46 @@
+<h1>Admin</h1>
+
+<div>
+  <label for="sector">Sector:</label>
+  <select id="sector" [formControl]="sectorControl">
+    <option value="">Select a sector</option>
+    @for (option of sectorOptions(); track option.id) {
+      <option [value]="option.id">{{ option.label }}</option>
+    }
+  </select>
+</div>
+
+@let people = rows();
+@if (people === null) {
+  <p>Pick a sector to see who selected it.</p>
+} @else if (people.length === 0) {
+  <p>No people have selected this sector.</p>
+} @else {
+  <table>
+    <thead>
+      <tr>
+        <th scope="col">Name</th>
+        <th scope="col">Sectors</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (person of people; track person.id) {
+        <tr>
+          <td>{{ person.name }}</td>
+          <td>{{ person.sectors }}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+}
+
+<p role="status">
+  @switch (status()) {
+    @case ('sectorsLoadFailed') {
+      Could not load sectors. Please refresh the page.
+    }
+    @case ('searchFailed') {
+      Could not load people. Please try again.
+    }
+  }
+</p>

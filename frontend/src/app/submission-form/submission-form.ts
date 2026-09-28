@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { catchError, of } from 'rxjs';
 import { SubmissionDto } from '../api/api.models';
 import { SectorApi } from '../api/sector-api';
 import { SubmissionSession } from '../session/submission-session';
@@ -8,7 +9,7 @@ import { PersonName } from './person-name/person-name';
 import { SectorSelect } from './sector-select/sector-select';
 import { TermsCheckbox } from './terms-checkbox/terms-checkbox';
 
-type Status = 'idle' | 'saving' | 'saved' | 'saveFailed' | 'loadFailed';
+type Status = 'idle' | 'saving' | 'saved' | 'saveFailed' | 'loadFailed' | 'sectorsLoadFailed';
 
 @Component({
   selector: 'app-submission-form',
@@ -36,8 +37,16 @@ export class SubmissionForm {
     }),
   });
 
-  protected readonly sectors = toSignal(this.sectorApi.getAll(), { initialValue: [] });
   protected readonly status = signal<Status>('idle');
+  protected readonly sectors = toSignal(
+    this.sectorApi.getAll().pipe(
+      catchError(() => {
+        this.status.set('sectorsLoadFailed');
+        return of([]);
+      }),
+    ),
+    { initialValue: [] },
+  );
 
   constructor() {
     this.submissionSession

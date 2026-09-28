@@ -13,6 +13,15 @@ public class SubmissionRepository(AppDbContext db) : ISubmissionRepository
             .FirstOrDefaultAsync(s => s.Id == id);
     }
 
+    public async Task<List<Submission>> AllWithAnySectorAsync(IReadOnlyCollection<Guid> sectorIds)
+    {
+        return await db.Submissions
+            .Include(s => s.SubmissionSectors)
+            .Where(s => s.SubmissionSectors.Any(ss => sectorIds.Contains(ss.SectorId)))
+            .OrderBy(s => s.Name)
+            .ToListAsync();
+    }
+
     public void Add(Submission submission)
     {
         db.Submissions.Add(submission);

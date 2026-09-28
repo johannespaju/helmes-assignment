@@ -14,6 +14,10 @@ export class SubmissionApi {
     return this.http.get<SubmissionDto>(`${API_BASE_URL}/submissions/${id}`);
   }
 
+  getBySector(sectorId: string): Observable<SubmissionDto[]> {
+    return this.http.get<SubmissionDto[]>(`${API_BASE_URL}/submissions`, { params: { sectorId } });
+  }
+
   create(input: SubmissionInput): Observable<SubmissionDto> {
     return this.http.post<SubmissionDto>(`${API_BASE_URL}/submissions`, input);
   }

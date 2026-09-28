@@ -41,6 +41,18 @@ describe('SubmissionApi', () => {
     expect(result).toEqual(submission);
   });
 
+  it('getBySector should GET submissions filtered by sector id', () => {
+    let result: SubmissionDto[] | undefined;
+
+    service.getBySector('2').subscribe((response) => (result = response));
+
+    const request = httpTesting.expectOne(`${API_BASE_URL}/submissions?sectorId=2`);
+    expect(request.request.method).toBe('GET');
+    request.flush([submission]);
+
+    expect(result).toEqual([submission]);
+  });
+
   it('create should POST the input without an id', () => {
     let result: SubmissionDto | undefined;
 

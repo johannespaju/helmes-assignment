@@ -32,6 +32,22 @@ public class SubmissionRepository_Tests : RepositoryTestBase
     }
 
     [Fact]
+    public async Task AllWithAnySectorAsync_ReturnsMatchingSubmissionsSortedByNameWithSectors()
+    {
+        await AddSubmissionDirectlyAsync("Mary", TestSectors.Beverages);
+        await AddSubmissionDirectlyAsync("Adam", TestSectors.CreativeIndustries, TestSectors.ConstructionMaterials);
+        await AddSubmissionDirectlyAsync("Zoe", TestSectors.CreativeIndustries);
+
+        await using var ctx = CreateContext();
+        var submissions = await new SubmissionRepository(ctx)
+            .AllWithAnySectorAsync([TestSectors.ConstructionMaterials, TestSectors.Beverages]);
+
+        submissions.Select(s => s.Name).Should().Equal("Adam", "Mary");
+        submissions[0].SubmissionSectors.Select(ss => ss.SectorId)
+            .Should().BeEquivalentTo([TestSectors.CreativeIndustries, TestSectors.ConstructionMaterials]);
+    }
+
+    [Fact]
     public async Task Add_AndSave_PersistsSubmissionWithSectors()
     {
         var submission = new Submission

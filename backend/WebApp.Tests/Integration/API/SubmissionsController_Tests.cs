@@ -37,6 +37,33 @@ public class SubmissionsController_Tests(CustomWebApplicationFactory factory) : 
     }
 
     [Fact]
+    public async Task GetBySector_Parent_ReturnsPeopleWithDescendantSectors()
+    {
+        var name = $"Beverage person {Guid.NewGuid()}";
+        var res = await _client.PostAsJsonAsync("/api/Submissions",
+            ValidDto() with { Name = name, SectorIds = [TestSectors.Beverages] });
+        res.EnsureSuccessStatusCode();
+
+        var underManufacturing = await _client.GetFromJsonAsync<List<SubmissionDto>>(
+            $"/api/Submissions?sectorId={TestSectors.Manufacturing}");
+        var underCreativeIndustries = await _client.GetFromJsonAsync<List<SubmissionDto>>(
+            $"/api/Submissions?sectorId={TestSectors.CreativeIndustries}");
+
+        underManufacturing!.Should().ContainSingle(s => s.Name == name)
+            .Which.SectorIds.Should().Equal(TestSectors.Beverages);
+        underCreativeIndustries!.Should().NotContain(s => s.Name == name);
+    }
+
+    [Fact]
+    public async Task GetBySector_Unknown_ReturnsEmpty()
+    {
+        var submissions = await _client.GetFromJsonAsync<List<SubmissionDto>>(
+            $"/api/Submissions?sectorId={Guid.NewGuid()}");
+
+        submissions.Should().BeEmpty();
+    }
+
+    [Fact]
     public async Task Post_Valid_Returns201AndCanBeFetched()
     {
         var res = await _client.PostAsJsonAsync("/api/Submissions", ValidDto());

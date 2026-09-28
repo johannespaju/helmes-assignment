@@ -23,7 +23,7 @@ public abstract class RepositoryTestBase : IAsyncLifetime
     public async Task InitializeAsync()
     {
         await using var ctx = CreateContext();
-        await ctx.Database.MigrateAsync();
+        await ctx.Database.EnsureCreatedAsync();
     }
 
     public Task DisposeAsync()

@@ -481,7 +481,10 @@ $RECYCLE.BIN/
 # Vim temporary swap files
 *.swp
 
-# SQLite databases (the committed dump lives in database/)
+# SQLite databases (the committed dump is dump.sql at the repo root)
 *.db
 *.db-shm
 *.db-wal
+
+# Local helper for generating the database dump
+database/dump.py

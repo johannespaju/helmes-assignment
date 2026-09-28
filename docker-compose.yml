@@ -1,0 +1,19 @@
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "5226:5226"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+    volumes:
+      - db-data:/data
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "4200:4200"
+    depends_on:
+      - backend
+
+volumes:
+  db-data:

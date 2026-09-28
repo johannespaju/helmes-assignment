@@ -94,6 +94,18 @@ describe('SubmissionForm', () => {
     expect(text()).toContain('Saved.');
   });
 
+  it('should refill the form with the stored data after saving', async () => {
+    await createComponent();
+    component['form'].setValue({ name: '  Jane Doe  ', sectorIds: ['2'], agreeToTerms: true });
+
+    submit();
+    httpTesting.expectOne(`${API_BASE_URL}/submissions`).flush(submission);
+    await fixture.whenStable();
+
+    const nameInput: HTMLInputElement = fixture.nativeElement.querySelector('#name');
+    expect(nameInput.value).toBe('Jane Doe');
+  });
+
   it('should say when saving fails', async () => {
     await createComponent();
     component['form'].setValue({ name: 'Jane Doe', sectorIds: ['2'], agreeToTerms: true });

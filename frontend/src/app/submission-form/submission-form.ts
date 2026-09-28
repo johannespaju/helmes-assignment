@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { SubmissionDto } from '../api/api.models';
 import { SectorApi } from '../api/sector-api';
 import { SubmissionSession } from '../session/submission-session';
 import { PersonName } from './person-name/person-name';
@@ -45,11 +46,7 @@ export class SubmissionForm {
       .subscribe({
         next: (submission) => {
           if (submission !== null) {
-            this.form.setValue({
-              name: submission.name,
-              sectorIds: submission.sectorIds,
-              agreeToTerms: submission.agreeToTerms,
-            });
+            this.fill(submission);
           }
         },
         error: () => this.status.set('loadFailed'),
@@ -64,8 +61,19 @@ export class SubmissionForm {
 
     this.status.set('saving');
     this.submissionSession.save(this.form.getRawValue()).subscribe({
-      next: () => this.status.set('saved'),
+      next: (submission) => {
+        this.fill(submission);
+        this.status.set('saved');
+      },
       error: () => this.status.set('saveFailed'),
+    });
+  }
+
+  private fill(submission: SubmissionDto): void {
+    this.form.setValue({
+      name: submission.name,
+      sectorIds: submission.sectorIds,
+      agreeToTerms: submission.agreeToTerms,
     });
   }
 }

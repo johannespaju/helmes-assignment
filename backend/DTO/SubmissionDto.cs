@@ -5,5 +5,5 @@ namespace DTO;
 public record SubmissionDto(
     Guid Id,
     [Required, MaxLength(128)] string Name,
-    [Required, MinLength(1)] IReadOnlyList<Guid> SectorIds,
+    [Required] IReadOnlyList<Guid> SectorIds,
     bool AgreeToTerms);

@@ -1,5 +1,6 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, of, tap } from 'rxjs';
+import { Observable, catchError, of, tap, throwError } from 'rxjs';
 import { SubmissionDto, SubmissionInput } from '../api/api.models';
 import { SubmissionApi } from '../api/submission-api';
 
@@ -15,7 +16,15 @@ export class SubmissionSession {
     if (id === null) {
       return of(null);
     }
-    return this.submissionApi.get(id);
+    return this.submissionApi.get(id).pipe(
+      catchError((error: unknown) => {
+        if (error instanceof HttpErrorResponse && error.status === 404) {
+          sessionStorage.removeItem(this.storageKey);
+          return of(null);
+        }
+        return throwError(() => error);
+      }),
+    );
   }
 
   save(input: SubmissionInput): Observable<SubmissionDto> {

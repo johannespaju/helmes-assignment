@@ -27,18 +27,21 @@ public class SubmissionsController(ISubmissionService submissionService, ISector
     [HttpPut("{id:guid}")]
     public async Task<ActionResult<SubmissionDto>> PutSubmission(Guid id, SubmissionDto dto)
     {
-        if (id != dto.Id) return BadRequest("Route id and body id do not match.");
-        if (!await IsValidAsync(dto)) return ValidationProblem();
+        if (!await IsValidAsync(dto, id)) return ValidationProblem();
 
         var updated = await submissionService.UpdateAsync(id, dto);
         return updated is null ? NotFound() : updated;
     }
 
-    private async Task<bool> IsValidAsync(SubmissionDto dto)
+    private async Task<bool> IsValidAsync(SubmissionDto dto, Guid? routeId = null)
     {
+        if (dto is null) return false;
+
+        if (routeId is not null && routeId != dto.Id)
+            ModelState.AddModelError("id", "Route id and body id do not match.");
         if (!dto.AgreeToTerms)
             ModelState.AddModelError(nameof(SubmissionDto.AgreeToTerms), "You must agree to the terms.");
-        if (!await sectorService.AreSelectableAsync(dto.SectorIds))
+        if (dto.SectorIds is not null && !await sectorService.AreSelectableAsync(dto.SectorIds))
             ModelState.AddModelError(nameof(SubmissionDto.SectorIds), "Select at least one sector. Sectors that have subsectors cannot be selected.");
 
         return ModelState.IsValid;

@@ -9,7 +9,8 @@ const string frontendCorsPolicy = "Frontend";
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .ConfigureApiBehaviorOptions(options => options.SuppressModelStateInvalidFilter = true);
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("Default")));
@@ -44,8 +45,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors(frontendCorsPolicy);
-
-app.UseHttpsRedirection();
 
 app.MapControllers();
 

@@ -69,4 +69,30 @@ describe('SubmissionSession', () => {
     httpTesting.expectOne(`${API_BASE_URL}/submissions/abc`).flush(submission);
     expect(result).toEqual(submission);
   });
+
+  it('load should forget a remembered id the API no longer knows', () => {
+    sessionStorage.setItem('submissionId', 'abc');
+    let result: SubmissionDto | null | undefined;
+
+    service.load().subscribe((response) => (result = response));
+
+    httpTesting
+      .expectOne(`${API_BASE_URL}/submissions/abc`)
+      .flush(null, { status: 404, statusText: 'Not Found' });
+    expect(result).toBeNull();
+    expect(sessionStorage.getItem('submissionId')).toBeNull();
+  });
+
+  it('load should keep the remembered id when the API fails for another reason', () => {
+    sessionStorage.setItem('submissionId', 'abc');
+    let failed = false;
+
+    service.load().subscribe({ error: () => (failed = true) });
+
+    httpTesting
+      .expectOne(`${API_BASE_URL}/submissions/abc`)
+      .flush(null, { status: 500, statusText: 'Server Error' });
+    expect(failed).toBe(true);
+    expect(sessionStorage.getItem('submissionId')).toBe('abc');
+  });
 });

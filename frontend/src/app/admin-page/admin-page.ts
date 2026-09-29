@@ -2,13 +2,12 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { catchError, map, of, switchMap } from 'rxjs';
-import { SectorDto } from '../api/api.models';
 import { SectorApi } from '../api/sector-api';
 import { SubmissionApi } from '../api/submission-api';
+import { flattenSectors, selfAndDescendantIds } from '../sectors/sector-tree';
 
 interface SectorOption {
   id: string;
-  name: string;
   label: string;
 }
 
@@ -17,8 +16,6 @@ interface PersonRow {
   name: string;
   sectors: string;
 }
-
-type Status = 'idle' | 'sectorsLoadFailed' | 'searchFailed';
 
 @Component({
   selector: 'app-admin-page',
@@ -32,12 +29,13 @@ export class AdminPage {
   private readonly submissionApi = inject(SubmissionApi);
 
   protected readonly sectorControl = new FormControl('', { nonNullable: true });
-  protected readonly status = signal<Status>('idle');
+  protected readonly sectorsLoadFailed = signal(false);
+  protected readonly searchFailed = signal(false);
 
   private readonly sectors = toSignal(
     this.sectorApi.getAll().pipe(
       catchError(() => {
-        this.status.set('sectorsLoadFailed');
+        this.sectorsLoadFailed.set(true);
         return of([]);
       }),
     ),
@@ -47,14 +45,14 @@ export class AdminPage {
   private readonly search = toSignal(
     this.sectorControl.valueChanges.pipe(
       switchMap((sectorId) => {
-        this.status.set('idle');
+        this.searchFailed.set(false);
         if (sectorId === '') {
           return of(null);
         }
         return this.submissionApi.getBySector(sectorId).pipe(
           map((people) => ({ sectorId, people })),
           catchError(() => {
-            this.status.set('searchFailed');
+            this.searchFailed.set(true);
             return of(null);
           }),
         );
@@ -63,10 +61,17 @@ export class AdminPage {
     { initialValue: null },
   );
 
-  protected readonly sectorOptions = computed(() => this.flatten(this.sectors(), 0));
+  private readonly flatSectors = computed(() => flattenSectors(this.sectors()));
+
+  protected readonly sectorOptions = computed<SectorOption[]>(() =>
+    this.flatSectors().map((sector) => ({
+      id: sector.id,
+      label: ' '.repeat(sector.depth * 4) + sector.name,
+    })),
+  );
 
   private readonly sectorNames = computed(
-    () => new Map(this.sectorOptions().map((option) => [option.id, option.name])),
+    () => new Map(this.flatSectors().map((sector) => [sector.id, sector.name])),
   );
 
   protected readonly rows = computed<PersonRow[] | null>(() => {
@@ -75,8 +80,7 @@ export class AdminPage {
       return null;
     }
     const names = this.sectorNames();
-    const shownIds = new Set<string>();
-    this.collectSelfAndDescendantIds(this.sectors(), search.sectorId, false, shownIds);
+    const shownIds = selfAndDescendantIds(this.sectors(), search.sectorId);
     return search.people.map((person) => ({
       id: person.id,
       name: person.name,
@@ -86,29 +90,4 @@ export class AdminPage {
         .join(', '),
     }));
   });
-
-  private flatten(sectors: SectorDto[], depth: number): SectorOption[] {
-    const options: SectorOption[] = [];
-    for (const sector of sectors) {
-      const label = ' '.repeat(depth * 4) + sector.name;
-      options.push({ id: sector.id, name: sector.name, label });
-      options.push(...this.flatten(sector.children, depth + 1));
-    }
-    return options;
-  }
-
-  private collectSelfAndDescendantIds(
-    sectors: SectorDto[],
-    sectorId: string,
-    insideSector: boolean,
-    ids: Set<string>,
-  ): void {
-    for (const sector of sectors) {
-      const inside = insideSector || sector.id === sectorId;
-      if (inside) {
-        ids.add(sector.id);
-      }
-      this.collectSelfAndDescendantIds(sector.children, sectorId, inside, ids);
-    }
-  }
 }

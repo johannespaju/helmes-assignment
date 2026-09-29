@@ -14,6 +14,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl } from '@angular/forms';
 import { SectorDto } from '../../api/api.models';
+import { countSelectedDescendants, flattenSectors } from '../../sectors/sector-tree';
 
 @Component({
   selector: 'app-sector-select',
@@ -35,7 +36,7 @@ export class SectorSelect implements OnInit {
 
   protected readonly selectedIds = signal<string[]>([]);
   protected readonly showError = signal(false);
-  protected readonly allSectors = computed(() => this.flatten(this.sectors()));
+  protected readonly allSectors = computed(() => flattenSectors(this.sectors()));
   protected readonly selectedSectors = computed(() =>
     this.allSectors().filter((sector) => this.selectedIds().includes(sector.id)),
   );
@@ -64,14 +65,7 @@ export class SectorSelect implements OnInit {
   }
 
   protected countSelected(sector: SectorDto): number {
-    let count = 0;
-    for (const child of sector.children) {
-      if (this.isSelected(child.id)) {
-        count++;
-      }
-      count += this.countSelected(child);
-    }
-    return count;
+    return countSelectedDescendants(sector, this.selectedIds());
   }
 
   protected closeIfOutside(event: MouseEvent): void {
@@ -90,14 +84,5 @@ export class SectorSelect implements OnInit {
     const control = this.control();
     this.selectedIds.set(control.value);
     this.showError.set(control.touched && control.hasError('required'));
-  }
-
-  private flatten(sectors: SectorDto[]): SectorDto[] {
-    const all: SectorDto[] = [];
-    for (const sector of sectors) {
-      all.push(sector);
-      all.push(...this.flatten(sector.children));
-    }
-    return all;
   }
 }

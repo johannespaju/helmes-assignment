@@ -1,35 +1,38 @@
 <h1>Your sectors</h1>
 <p class="intro">Please enter your name and pick the sectors you are currently involved in.</p>
 
+<div role="alert">
+  @if (sectorsLoadFailed()) {
+    <p class="status failure load-error">Could not load sectors. Please refresh the page.</p>
+  }
+  @if (submissionLoadFailed()) {
+    <p class="status failure load-error">Could not load your saved data.</p>
+  }
+</div>
+
 <form [formGroup]="form" (ngSubmit)="save()">
   <app-person-name [control]="form.controls.name" />
   <app-sector-select [control]="form.controls.sectorIds" [sectors]="sectors()" />
   <app-terms-checkbox [control]="form.controls.agreeToTerms" />
 
   <div class="actions">
-    <button class="button" type="submit" [disabled]="status() === 'saving'">Save</button>
+    <button class="button" type="submit" [disabled]="saveState() === 'saving'">Save</button>
 
     <p
       role="status"
       class="status"
-      [class.success]="status() === 'saved'"
-      [class.failure]="failed()"
+      [class.success]="saveState() === 'saved'"
+      [class.failure]="saveState() === 'failed'"
     >
-      @switch (status()) {
+      @switch (saveState()) {
         @case ('saving') {
           Saving…
         }
         @case ('saved') {
           Saved.
         }
-        @case ('saveFailed') {
+        @case ('failed') {
           Saving failed. Please try again.
-        }
-        @case ('loadFailed') {
-          Could not load your saved data.
-        }
-        @case ('sectorsLoadFailed') {
-          Could not load sectors. Please refresh the page.
         }
       }
     </p>

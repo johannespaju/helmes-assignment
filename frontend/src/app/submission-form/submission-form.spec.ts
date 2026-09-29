@@ -95,6 +95,29 @@ describe('SubmissionForm', () => {
     expect(text()).toContain('Could not load your saved data.');
   });
 
+  it('should keep load errors visible after saving', async () => {
+    sessionStorage.setItem('submissionId', 'abc');
+    fixture = TestBed.createComponent(SubmissionForm);
+    component = fixture.componentInstance;
+    httpTesting = TestBed.inject(HttpTestingController);
+    await fixture.whenStable();
+
+    httpTesting
+      .expectOne(`${API_BASE_URL}/sectors`)
+      .flush(null, { status: 500, statusText: 'Server Error' });
+    httpTesting
+      .expectOne(`${API_BASE_URL}/submissions/abc`)
+      .flush(null, { status: 500, statusText: 'Server Error' });
+    component['form'].setValue({ name: 'Jane Doe', sectorIds: ['2'], agreeToTerms: true });
+    submit();
+    httpTesting.expectOne(`${API_BASE_URL}/submissions/abc`).flush(submission);
+    await fixture.whenStable();
+
+    expect(text()).toContain('Could not load sectors. Please refresh the page.');
+    expect(text()).toContain('Could not load your saved data.');
+    expect(text()).toContain('Saved.');
+  });
+
   it.each([
     { problem: 'only whitespace', name: '   ', error: 'Name is required.' },
     { problem: 'over 128 characters', name: 'a'.repeat(129), error: 'Name can be at most 128 characters.' },

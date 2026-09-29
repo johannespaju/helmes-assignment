@@ -34,13 +34,11 @@
   </table>
 }
 
-<p role="status" class="status failure">
-  @switch (status()) {
-    @case ('sectorsLoadFailed') {
-      Could not load sectors. Please refresh the page.
-    }
-    @case ('searchFailed') {
-      Could not load people. Please try again.
-    }
+<div role="status">
+  @if (sectorsLoadFailed()) {
+    <p class="status failure">Could not load sectors. Please refresh the page.</p>
   }
-</p>
+  @if (searchFailed()) {
+    <p class="status failure">Could not load people. Please try again.</p>
+  }
+</div>

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { catchError, of } from 'rxjs';
@@ -9,7 +9,7 @@ import { PersonName } from './person-name/person-name';
 import { SectorSelect } from './sector-select/sector-select';
 import { TermsCheckbox } from './terms-checkbox/terms-checkbox';
 
-type Status = 'idle' | 'saving' | 'saved' | 'saveFailed' | 'loadFailed' | 'sectorsLoadFailed';
+type SaveState = 'idle' | 'saving' | 'saved' | 'failed';
 
 @Component({
   selector: 'app-submission-form',
@@ -37,14 +37,13 @@ export class SubmissionForm {
     }),
   });
 
-  protected readonly status = signal<Status>('idle');
-  protected readonly failed = computed(() =>
-    ['saveFailed', 'loadFailed', 'sectorsLoadFailed'].includes(this.status()),
-  );
+  protected readonly sectorsLoadFailed = signal(false);
+  protected readonly submissionLoadFailed = signal(false);
+  protected readonly saveState = signal<SaveState>('idle');
   protected readonly sectors = toSignal(
     this.sectorApi.getAll().pipe(
       catchError(() => {
-        this.status.set('sectorsLoadFailed');
+        this.sectorsLoadFailed.set(true);
         return of([]);
       }),
     ),
@@ -61,12 +60,12 @@ export class SubmissionForm {
             this.fill(submission);
           }
         },
-        error: () => this.status.set('loadFailed'),
+        error: () => this.submissionLoadFailed.set(true),
       });
 
     this.form.valueChanges.pipe(takeUntilDestroyed()).subscribe(() => {
-      if (this.status() === 'saved' || this.status() === 'saveFailed') {
-        this.status.set('idle');
+      if (this.saveState() === 'saved' || this.saveState() === 'failed') {
+        this.saveState.set('idle');
       }
     });
   }
@@ -77,13 +76,13 @@ export class SubmissionForm {
       return;
     }
 
-    this.status.set('saving');
+    this.saveState.set('saving');
     this.submissionSession.save(this.form.getRawValue()).subscribe({
       next: (submission) => {
         this.fill(submission);
-        this.status.set('saved');
+        this.saveState.set('saved');
       },
-      error: () => this.status.set('saveFailed'),
+      error: () => this.saveState.set('failed'),
     });
   }
 
